@@ -52,7 +52,7 @@ using EnumSets
 
 @enum Alphbet A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 
-function doit(sets)
+function workout(sets)
     s = first(sets)
     b = false
     ESet = eltype(sets)
@@ -78,13 +78,15 @@ sets = [AlphbetSet(rand(instances(Alphbet)) for _ in 0:length(instances(Alphbet)
 basesets = map(Set, sets)
 
 # warmup
-doit(sets, )
-doit(basesets, )
+workout(sets, )
+workout(basesets, )
+# benchmark
 println(eltype(sets))
-res1 = @time doit(sets, )
+res1 = @time workout(sets, )
 println(eltype(basesets))
-res2 = @time doit(basesets, )
-@assert res1 == res2
+res2 = @time workout(basesets, )
+
+@assert res1 == res2 # both yield the same result
 
 # AlphbetSet
 #   0.000279 seconds (1 allocation: 16 bytes)
