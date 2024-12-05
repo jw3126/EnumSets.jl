@@ -1,6 +1,32 @@
 using EnumSets
 using Test
 
+function fuzz_booleans(ESet)
+    E = eltype(ESet)
+    es = instances(E)
+    n = length(es)
+    for _ in 1:100
+        n1 = rand(0:n)
+        n2 = rand(0:n)
+        s1 = ESet(rand(es, n1))
+        s2 = ESet(rand(es, n2))
+        ss = [ESet(rand(es, n2)) for _ in 1:rand(1:4)]
+        @test length(s1) == length(Set(s1)) <= n1
+        @test (s1 ⊆ s2) == (Set(s1) ⊆ Set(s2))
+        @test (s1 ⊊ s2) == (Set(s1) ⊊ Set(s2))
+
+        @test Set(s1 ∩ s2) == Set(s1) ∩ Set(s2)
+        @test Set(s1 ∪ s2) == Set(s1) ∪ Set(s2)
+        @test Set(symdiff(s1, s2)) == symdiff(Set(s1), Set(s2))
+
+        @test Set(∩(ss...)) == ∩(Set.(ss)...)
+        @test Set(∪(ss...)) == ∪(Set.(ss)...)
+        @test Set(symdiff(ss...)) == symdiff(Set.(ss)...)
+        e = rand(es)
+        @test (e in s1) === (e in Set(s1))
+    end
+end
+
 @enum Alphabet begin
     A=1 
     B=2 
@@ -33,6 +59,8 @@ end
     @test union(ASet([A]), ASet([B]), ASet([A,B])) == ASet([A, B])
 
     @test intersect(ASet([A,B]), ASet([C,B])) === ASet([B])
+
+    fuzz_booleans(ASet)
 end
 
 @enum Negative::Int128 begin
@@ -51,6 +79,7 @@ end
     @test !(NegativeSet((a,b, d)) ⊊ NegativeSet((a,b, d)))
     @test NegativeSet((a,b)) ⊈ NegativeSet((a, c, d))
 
+    fuzz_booleans(NegativeSet)
 end
 
 @enum ProgrammerExcuse begin
@@ -136,4 +165,6 @@ end
         @test length(s) == i
         @test collect(s) == collect(instances(ProgrammerExcuse))[1:i]
     end
+
+    fuzz_booleans(ProgrammerExcuseSet)
 end

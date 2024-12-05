@@ -118,16 +118,24 @@ function Base.iterate(s::EnumSet{E}, i::Int=1)::Union{Nothing, Tuple{E, Int}} wh
     return nothing
 end
 
+function boolean(f,ss::S...)::S where {S <: EnumSet}
+    S(f(map(_get_data, ss)...))
+end
+
 function Base.union(s1::S, ss::S...)::S where {S <: EnumSet}
-    S((|)(_get_data(s1), map(_get_data, ss)...))
+    boolean((|),s1,ss...)
 end
 
 function Base.intersect(s1::S, ss::S...)::S where {S <: EnumSet}
-    S((&)(_get_data(s1), map(_get_data, ss)...))
+    boolean((&),s1,ss...)
 end
 
 function Base.issubset(s1::S, s2::S)::Bool where {S <: EnumSet}
     s1 ∩ s2 === s1
+end
+
+function Base.symdiff(s1::S, ss::S...)::S where {S <: EnumSet}
+    boolean(xor,s1,ss...)
 end
 
 function make_error_msg(ex)
