@@ -32,19 +32,26 @@ end
     @test union(ASet([A]), ASet([B])) == ASet([A, B])
     @test union(ASet([A]), ASet([B]), ASet([A,B])) == ASet([A, B])
 
-    @show intersect(ASet([A,B]), ASet([C,B]))
     @test intersect(ASet([A,B]), ASet([C,B])) === ASet([B])
 end
 
 @enum Negative::Int128 begin
-    a=0
+    a=1
     b=-1
-    c=-3
-    d=typemin(Int128)
-    t=typemax(Int128)
+    c=typemin(Int128)
+    d=typemax(Int128)
 end
 
-@enumset NegativeSet <: EnumSet{Negative}
+@testset "negative enum" begin
+    @enumset NegativeSet <: EnumSet{Negative}
+
+    @test NegativeSet((a,b, d)) != NegativeSet((a,))
+    @test NegativeSet((a,b, d)) ⊆ NegativeSet((a,b, c, d))
+    @test NegativeSet((a,b, d)) ⊊ NegativeSet((a,b, c, d))
+    @test !(NegativeSet((a,b, d)) ⊊ NegativeSet((a,b, d)))
+    @test NegativeSet((a,b)) ⊈ NegativeSet((a, c, d))
+
+end
 
 @enum ProgrammerExcuse begin
     WorksOnMyMachine

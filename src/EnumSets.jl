@@ -19,7 +19,24 @@ function setbit(xT::Integer, i, val)
     xT | (valT << iT)
 end
 
-function to_bit_index(::Type{E}, e::E) where {E}
+abstract type PackingTrait end
+struct InstanceBasedPacking <:PackingTrait
+end
+struct OffsetBasedPacking{offset} end
+
+function get_offset(::OffsetBasedPacking{offset})::Int where {offset}
+    offset
+end
+
+function bitindex_from_instance(::Type{E}, trait::OffsetBasedPacking, e::E)::Int where {E}
+    Int(e) + get_offset(trait)
+end
+
+function instance_from_bitindex(::Type{E}, trait::OffsetBasedPacking, i::Int)::E where {E}
+    E(i - get_offset(trait))
+end
+
+function bitindex_from_instance(::Type{E}, ::InstanceBasedPacking, e::E)::Int where {E}
     for (i, v) in enumerate(instances(E))
         if v === e
             return i
@@ -28,12 +45,18 @@ function to_bit_index(::Type{E}, e::E) where {E}
     error("Unreachable")
 end
 
-function from_bit_index(::Type{E}, i) where {E}
+function instance_from_bitindex(::Type{E}, ::InstanceBasedPacking, i::Int)::E where {E}
+    # TODO we can make this @inbounds
     instances(E)[i]
 end
 
 function suggest_carriertype(E)
-    n = length(instances(E))
+    n = if enum_fits_into_offset_packing(E, 128)
+        lo, hi = extrema(Integer, instances(E))
+        hi - lo
+    else
+        length(instances(E))
+    end
     if n <= 8
         UInt8
     elseif n <= 16
@@ -63,15 +86,15 @@ function getbit(s::EnumSet, i::Int)::Bool
 end
 
 function Base.in(e::E, s::EnumSet{E})::Bool where {E}
-    i = to_bit_index(E, e)
+    i = bitindex_from_instance(E, PackingTrait(s), e)
     getbit(s, i)
 end
 function push(s::EnumSet{E}, e::E)::typeof(s) where {E}
-    i = to_bit_index(E, e)
+    i = bitindex_from_instance(E, PackingTrait(s), e)
     setbit(s, i, true)
 end
 function pop(s::EnumSet{E}, e::E)::typeof(s) where {E}
-    i = to_bit_index(E, e)
+    i = bitindex_from_instance(E, PackingTrait(s), e)
     @boundscheck if !getbit(s, i)
         throw(KeyError(e))
     end
@@ -87,7 +110,7 @@ function Base.iterate(s::EnumSet{E}, i::Int=1)::Union{Nothing, Tuple{E, Int}} wh
     c = capacity(s)
     while i <= c
         if getbit(s, i)
-            return from_bit_index(E, i), i + 1
+            return instance_from_bitindex(E, PackingTrait(s), i), i + 1
         else
             i += 1
         end
@@ -101,6 +124,10 @@ end
 
 function Base.intersect(s1::S, ss::S...)::S where {S <: EnumSet}
     S((&)(_get_data(s1), map(_get_data, ss)...))
+end
+
+function Base.issubset(s1::S, s2::S)::Bool where {S <: EnumSet}
+    s1 ∩ s2 === s1
 end
 
 function make_error_msg(ex)
@@ -135,6 +162,21 @@ macro enumset(ex)
     esc(enumsetmacro(E, ESet, Carrier))
 end
 
+function from_itr(::Type{ESet}, itr)::ESet where {ESet <: EnumSet}
+    ret = ESet()
+    E = eltype(ESet)
+    for e in itr
+        ret = push(ret, convert(E, e))
+    end
+    ret
+end
+
+function enum_fits_into_offset_packing(E, nbits)
+    lo, hi = extrema(Integer, instances(E))
+    # convert to Float64 to prevent overflow issues
+    (abs(hi - lo) < nbits) && (abs(Float64(hi) - Float64(lo)) < nbits)
+end
+
 function enumsetmacro(E::Type, ESet::Symbol, Carrier::Type)
 
     if length(instances(E)) > nbits(Carrier)
@@ -144,7 +186,13 @@ function enumsetmacro(E::Type, ESet::Symbol, Carrier::Type)
         nbits($Carrier)       = $(nbits(Carrier))
         """
     end
-    quote
+    PTrait = if enum_fits_into_offset_packing(E, nbits(Carrier))
+        OffsetBasedPacking{1-minimum(Integer, instances(E))}
+    else
+        InstanceBasedPacking
+    end
+    M = @__MODULE__()
+    ret = quote
         struct $ESet <: $EnumSet{$E, $Carrier}
             _data::$Carrier
             function $ESet(carrier::$Carrier)
@@ -158,13 +206,14 @@ function enumsetmacro(E::Type, ESet::Symbol, Carrier::Type)
             e
         end
         function $ESet(itr)::$ESet
-            ret = $ESet()
-            for e in itr
-                ret = $push(ret, convert($E, e))
-            end
-            ret
+            $from_itr($ESet, itr)
+        end
+        function $M.PackingTrait(::$ESet)::$PTrait
+            $PTrait()
         end
     end
+
+    ret
 end
 
 end
