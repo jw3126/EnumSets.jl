@@ -105,7 +105,7 @@ function push(s::EnumSet{E}, e::E)::typeof(s) where {E}
     i = bitindex_from_instance(E, PackingTrait(s), e)
     setbit(s, i, true)
 end
-function push(s::EnumSet{E}, es::E...)::typeof(s) where {E}
+function push(s::EnumSet{E}, es...)::typeof(s) where {E}
     union(s, es)
 end
 function pop(s::EnumSet{E}, e::E)::typeof(s) where {E}
@@ -125,7 +125,7 @@ function Base.iterate(s::EnumSet{E}, i::Int=1)::Union{Nothing, Tuple{E, Int}} wh
     c = capacity(s)
     while i <= c
         if getbit(s, i)
-            return instance_from_bitindex(E, PackingTrait(s), i), i + 1
+        return instance_from_bitindex(E, PackingTrait(s), i), i + 1
         else
             i += 1
         end
@@ -133,24 +133,26 @@ function Base.iterate(s::EnumSet{E}, i::Int=1)::Union{Nothing, Tuple{E, Int}} wh
     return nothing
 end
 
-function boolean(f,ss::S...)::S where {S <: EnumSet}
-    S(f(map(_get_data, ss)...))
+function boolean(f,s::S, ss...)::S where {S <: EnumSet}
+    d = _get_data(s)
+    ds = map(_get_data ∘ S, ss)
+    S(f(d, ds...))
 end
 
-function Base.union(s1::S, ss::S...)::S where {S <: EnumSet}
+function Base.union(s1::S, ss...)::S where {S <: EnumSet}
     boolean((|),s1,ss...)
 end
 
-function Base.intersect(s1::S, ss::S...)::S where {S <: EnumSet}
+function Base.intersect(s1::S, ss...)::S where {S <: EnumSet}
     boolean((&),s1,ss...)
+end
+
+function Base.symdiff(s1::S, ss...)::S where {S <: EnumSet}
+    boolean(xor,s1,ss...)
 end
 
 function Base.issubset(s1::S, s2::S)::Bool where {S <: EnumSet}
     s1 ∩ s2 === s1
-end
-
-function Base.symdiff(s1::S, ss::S...)::S where {S <: EnumSet}
-    boolean(xor,s1,ss...)
 end
 
 function make_error_msg(ex)

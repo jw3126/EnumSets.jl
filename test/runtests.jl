@@ -59,7 +59,10 @@ end
     @test union(ASet([A]), ASet([B])) == ASet([A, B])
     @test union(ASet([A]), ASet([B]), ASet([A,B])) == ASet([A, B])
 
+    @test union(ASet([A]), [B], (B,)) === ASet((A, B))
+
     @test intersect(ASet([A,B]), ASet([C,B])) === ASet([B])
+
 
     fuzz_booleans(ASet)
 end
