@@ -11,17 +11,18 @@ function fuzz_booleans(ESet)
         s1 = ESet(rand(es, n1))
         s2 = ESet(rand(es, n2))
         ss = [ESet(rand(es, n2)) for _ in 1:rand(1:4)]
-        @test length(s1) == length(Set(s1)) <= n1
-        @test (s1 ⊆ s2) == (Set(s1) ⊆ Set(s2))
-        @test (s1 ⊊ s2) == (Set(s1) ⊊ Set(s2))
+        @test length(s1) === length(Set(s1)) <= n1
+        @test (s1 ⊆ s2) === (Set(s1) ⊆ Set(s2))
+        @test (s1 ⊊ s2) === (Set(s1) ⊊ Set(s2))
+        @test push(s1, s2...) === s1 ∪ s2
 
-        @test Set(s1 ∩ s2) == Set(s1) ∩ Set(s2)
-        @test Set(s1 ∪ s2) == Set(s1) ∪ Set(s2)
-        @test Set(symdiff(s1, s2)) == symdiff(Set(s1), Set(s2))
+        @test (s1 ∩ s2) === ESet(Set(s1) ∩ Set(s2))
+        @test (s1 ∪ s2) === ESet(Set(s1) ∪ Set(s2))
+        @test symdiff(s1, s2) === ESet(symdiff(Set(s1), Set(s2)))
 
-        @test Set(∩(ss...)) == ∩(Set.(ss)...)
-        @test Set(∪(ss...)) == ∪(Set.(ss)...)
-        @test Set(symdiff(ss...)) == symdiff(Set.(ss)...)
+        @test ∩(ss...) === ESet(∩(Set.(ss)...))
+        @test ∪(ss...) === ESet(∪(Set.(ss)...))
+        @test symdiff(ss...) === ESet(symdiff(Set.(ss)...))
         e = rand(es)
         @test (e in s1) === (e in Set(s1))
     end

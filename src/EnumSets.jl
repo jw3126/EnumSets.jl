@@ -28,11 +28,24 @@ function get_offset(::OffsetBasedPacking{offset})::Int where {offset}
     offset
 end
 
+function carriertype(::Type{<:Enum{T}}) where {T} 
+    T
+end
+
+function unsafe_enum_from_int(::Type{E}, x::Integer)::E where {E <: Enum}
+    T = carriertype(E)
+    xT = convert(T, x)
+    reinterpret(E, xT)
+end
+
 function bitindex_from_instance(::Type{E}, trait::OffsetBasedPacking, e::E)::Int where {E}
     Int(e) + get_offset(trait)
 end
 
 function instance_from_bitindex(::Type{E}, trait::OffsetBasedPacking, i::Int)::E where {E}
+    # TODO does this make a performance difference?
+    # In theory it should, but I was not yet able to measure one in practice
+    # unsafe_enum_from_int(E, i - get_offset(trait))
     E(i - get_offset(trait))
 end
 
@@ -46,7 +59,6 @@ function bitindex_from_instance(::Type{E}, ::InstanceBasedPacking, e::E)::Int wh
 end
 
 function instance_from_bitindex(::Type{E}, ::InstanceBasedPacking, i::Int)::E where {E}
-    # TODO we can make this @inbounds
     instances(E)[i]
 end
 
@@ -92,6 +104,9 @@ end
 function push(s::EnumSet{E}, e::E)::typeof(s) where {E}
     i = bitindex_from_instance(E, PackingTrait(s), e)
     setbit(s, i, true)
+end
+function push(s::EnumSet{E}, es::E...)::typeof(s) where {E}
+    union(s, es)
 end
 function pop(s::EnumSet{E}, e::E)::typeof(s) where {E}
     i = bitindex_from_instance(E, PackingTrait(s), e)
