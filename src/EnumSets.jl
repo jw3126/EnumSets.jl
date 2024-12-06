@@ -210,6 +210,7 @@ function enumsetmacro(E::Type, ESet::Symbol, Carrier::Type)
         length(instances($E)) = $(length(instances(E)))
         nbits($Carrier)       = $(nbits(Carrier))
         """
+        return :(error($msg))
     end
     PTrait = if enum_fits_into_offset_packing(E, nbits(Carrier))
         OffsetBasedPacking{1-minimum(Integer, instances(E))}

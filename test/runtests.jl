@@ -169,6 +169,9 @@ end
         @test length(s) == i
         @test collect(s) == collect(instances(ProgrammerExcuse))[1:i]
     end
-
     fuzz_booleans(ProgrammerExcuseSet)
+end
+
+@testset "Does not fit" begin
+    @test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." @enumset DoesNotFitSet <: EnumSet{ProgrammerExcuse, UInt64}
 end
