@@ -50,7 +50,7 @@ LangSet with 1 element:
 ```julia
 using EnumSets
 
-@enum Alphbet A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+@enum Alphabet A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 
 function workout(sets)
     s = first(sets)
@@ -72,9 +72,9 @@ function workout(sets)
     s, b
 end
 
-@enumset AlphbetSet <: EnumSet{Alphbet}
+@enumset AlphabetSet <: EnumSet{Alphabet}
 
-sets = [AlphbetSet(rand(instances(Alphbet)) for _ in 0:length(instances(Alphbet))) for _ in 1:100]
+sets = [AlphabetSet(rand(instances(Alphabet)) for _ in 0:length(instances(Alphabet))) for _ in 1:100]
 basesets = map(Set, sets)
 
 # warmup
@@ -88,8 +88,8 @@ res2 = @time workout(basesets, )
 
 @assert res1 == res2 # both yield the same result
 
-# AlphbetSet
+# AlphabetSet
 #   0.000279 seconds (1 allocation: 16 bytes)
-# Set{Alphbet}
+# Set{Alphabet}
 #   0.503022 seconds (8.15 M allocations: 756.469 MiB, 13.51% gc time)
 ```
