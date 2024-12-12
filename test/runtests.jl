@@ -63,6 +63,20 @@ end
 
     @test intersect(ASet([A,B]), ASet([C,B])) === ASet([B])
 
+    # iteration
+    s = ASet((A,C))
+    next = iterate(s)
+    @test !isnothing(next)
+    a, state = next
+    @test a === A
+
+    next = iterate(s, state)
+    @test !isnothing(next)
+    c, state = next
+    @test c === C
+
+    next = iterate(s, state)
+    @test isnothing(next)
 
     fuzz_booleans(ASet)
 end
@@ -178,7 +192,7 @@ end
 
 @testset "blsr" begin
     for T in [UInt8, UInt16, UInt32, UInt64, UInt128]
-        @test iszero(blsr(zero(T)))
+        @test iszero(EnumSets.blsr(zero(T)))
         for _ in 1:100
             x = rand(T)
             iszero(x) && continue

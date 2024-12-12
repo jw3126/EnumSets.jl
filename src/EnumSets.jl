@@ -124,8 +124,11 @@ end
 
 function blsr(x::T)::T where {T<:Integer}
     # Reset Lowest Set Bit i. Toggles lowest 1 bit into zero
-    # Initial value: 01011100 (binary)
-    # After BLSR:   01011000 (binary)
+    # input : 01011100 
+    # output: 01011000
+    # leaves zero as is:
+    # input : 00000000
+    # output: 00000000
     convert(T,Base._blsr(x))
 end
 
