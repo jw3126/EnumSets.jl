@@ -121,16 +121,22 @@ end
 function Base.length(s::EnumSet)::Int
     count_ones(s._data)
 end
-function Base.iterate(s::EnumSet{E}, i::Int=1)::Union{Nothing, Tuple{E, Int}} where {E}
-    c = capacity(s)
-    while i <= c
-        if getbit(s, i)
-        return instance_from_bitindex(E, PackingTrait(s), i), i + 1
-        else
-            i += 1
-        end
+
+function blsr(x::T)::T where {T<:Integer}
+    # Reset Lowest Set Bit i. Toggles lowest 1 bit into zero
+    # Initial value: 01011100 (binary)
+    # After BLSR:   01011000 (binary)
+    convert(T,Base._blsr(x))
+end
+
+function Base.iterate(s::EnumSet{E,I}, state=_get_data(s))::Union{Nothing, Tuple{E, I}} where {E,I}
+    next_state = blsr(state)
+    if next_state === state
+        return nothing
+    else
+        i = trailing_zeros(state)
+        instance_from_bitindex(E, PackingTrait(s), i), next_state
     end
-    return nothing
 end
 
 function boolean(f,s::S, ss...)::S where {S <: EnumSet}

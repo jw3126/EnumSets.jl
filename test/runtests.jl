@@ -175,3 +175,15 @@ end
 @testset "Does not fit" begin
     @test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." @enumset DoesNotFitSet <: EnumSet{ProgrammerExcuse, UInt64}
 end
+
+@testset "blsr" begin
+    for T in [UInt8, UInt16, UInt32, UInt64, UInt128]
+        @test iszero(blsr(zero(T)))
+        for _ in 1:100
+            x = rand(T)
+            iszero(x) && continue
+            i = Base.trailing_zeros(x)
+            @test x === EnumSets.blsr(x) + one(T) << i
+        end
+    end
+end
