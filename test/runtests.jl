@@ -12,6 +12,7 @@ function fuzz_booleans(ESet)
         s2 = ESet(rand(es, n2))
         ss = [ESet(rand(es, n2)) for _ in 1:rand(1:4)]
         @test length(s1) === length(Set(s1)) <= n1
+        @test length(s1) === count(Returns(true), s1)
         @test (s1 ⊆ s2) === (Set(s1) ⊆ Set(s2))
         @test (s1 ⊊ s2) === (Set(s1) ⊊ Set(s2))
         @test push(s1, s2...) === s1 ∪ s2
