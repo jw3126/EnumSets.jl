@@ -30,9 +30,9 @@ function fuzz_booleans(ESet)
 end
 
 @enum X x1 x2 x3 x4 x5 x6 x7 x8
+@enumset SetX <: EnumSet{X, UInt8}
 
 @testset "Packed into a single byte" begin
-    @enumset SetX <: EnumSet{X, UInt8}
     @test EnumSets.PackingTrait(SetX((x1,))) === EnumSets.OffsetBasedPacking{0}()
     @test sizeof(SetX) == 1
 
@@ -45,8 +45,7 @@ end
     @test only(SetX((x7,))) === x7
     @test only(SetX((x8,))) === x8
 
-    @enumset SetX8 <: EnumSet{X, UInt8}
-    fuzz_booleans(SetX8)
+    fuzz_booleans(SetX)
 end
 
 @enum Alphabet begin
@@ -54,9 +53,9 @@ end
     B=2 
     C=3
 end
+@enumset ASet <: EnumSet{Alphabet}
 
 @testset "simple enum" begin
-    @enumset ASet <: EnumSet{Alphabet}
 
     s = ASet()
     @test isbitstype(ASet)
@@ -108,9 +107,9 @@ end
     c=typemin(Int128)
     d=typemax(Int128)
 end
+@enumset NegativeSet <: EnumSet{Negative}
 
 @testset "negative enum" begin
-    @enumset NegativeSet <: EnumSet{Negative}
 
     @test NegativeSet((a,b, d)) != NegativeSet((a,))
     @test NegativeSet((a,b, d)) ⊆ NegativeSet((a,b, c, d))
@@ -189,10 +188,10 @@ end
     GraphQLTooGraphy
     WebsocketDisconnected
 end
+@enumset ProgrammerExcuseSet <: EnumSet{ProgrammerExcuse}
 
 @testset "big enum" begin
     @test length(instances(ProgrammerExcuse)) > 64
-    @enumset ProgrammerExcuseSet <: EnumSet{ProgrammerExcuse}
     @test 8*sizeof(ProgrammerExcuseSet) >= length(instances(ProgrammerExcuse))
     s = ProgrammerExcuseSet()
     @test isempty(s)
@@ -207,9 +206,7 @@ end
     fuzz_booleans(ProgrammerExcuseSet)
 end
 
-@testset "Does not fit" begin
-    @test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." @enumset DoesNotFitSet <: EnumSet{ProgrammerExcuse, UInt64}
-end
+@test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." enumsettype(ProgrammerExcuse; carrier=UInt64)
 
 @testset "blsr" begin
     for T in [UInt8, UInt16, UInt32, UInt64, UInt128]
