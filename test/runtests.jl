@@ -102,79 +102,79 @@ end
 
     fuzz_booleans(NegativeSet)
 end
-    @enum ProgrammerExcuse begin
-        WorksOnMyMachine
-        MercurialRetrograde
-        CosmicRayBitFlip
-        CoffeeNotFound
-        KeyboardNotErgonomic
-        WrongMoonPhase
-        CatOnKeyboard
-        StandupMeetingTooLong
-        BadrouterIonization
-        CompilerFeelingMoody
-        CacheTooCachey
-        NotEnoughEmojis
-        TooManyEmojis
-        QuotaExceededForSighs
-        WifiPasswordTooStrong
-        DnsLookingOtherWay
-        FirewallTooFirey
-        CloudsTooFluffy
-        GitBranchTooBranchy
-        StackOverflowDown
-        RedditWasDistracting
-        SlackNotSlacking
-        ZoomBackgroundTooVirtual
-        MousepadTooSlippery
-        ChairNotGaming
-        DeskTooClean
-        DeskTooMessy
-        MonitorNotVertical
-        SecondMonitorJealous
-        ThirdMonitorMissing
-        RubberDuckOnVacation
-        TerminalTooColourful
-        FontNotCoding
-        TabsVsSpacesDispute
-        GitConflictTooConflicting
-        LinuxKernelTooKernelly
-        WindowsUpdateConspiracy
-        MacBookTooShiny
-        DockerWhaleNotSwimming
-        KubernetesPodsHomesick
-        JiraTicketEscaped
-        BacklogTooLogged
-        SprintTooMarathon
-        ScrumTooChaotic
-        WaterfallTooWet
-        AgileNotNimble
-        TechnicalDebtCollector
-        LegacyCodeHaunting
-        UnitTestsTooUnity
-        IntegrationTestsDancing
-        E2ETestsDaydreaming
-        CICDPipelineClogged
-        DevOpsSleeping
-        ProdEnvAngry
-        StagingStaged
-        TestEnvTesting
-        LocalhostLost
-        PortsAllBusy
-        MemoryLeakingSlowly
-        CPUOnStrike
-        GPUMining
-        RAMDownloading
-        SSLCertificateShy
-        APITooRESTful
-        GraphQLTooGraphy
-        WebsocketDisconnected
-    end
+
+@enum ProgrammerExcuse begin
+    WorksOnMyMachine
+    MercurialRetrograde
+    CosmicRayBitFlip
+    CoffeeNotFound
+    KeyboardNotErgonomic
+    WrongMoonPhase
+    CatOnKeyboard
+    StandupMeetingTooLong
+    BadrouterIonization
+    CompilerFeelingMoody
+    CacheTooCachey
+    NotEnoughEmojis
+    TooManyEmojis
+    QuotaExceededForSighs
+    WifiPasswordTooStrong
+    DnsLookingOtherWay
+    FirewallTooFirey
+    CloudsTooFluffy
+    GitBranchTooBranchy
+    StackOverflowDown
+    RedditWasDistracting
+    SlackNotSlacking
+    ZoomBackgroundTooVirtual
+    MousepadTooSlippery
+    ChairNotGaming
+    DeskTooClean
+    DeskTooMessy
+    MonitorNotVertical
+    SecondMonitorJealous
+    ThirdMonitorMissing
+    RubberDuckOnVacation
+    TerminalTooColourful
+    FontNotCoding
+    TabsVsSpacesDispute
+    GitConflictTooConflicting
+    LinuxKernelTooKernelly
+    WindowsUpdateConspiracy
+    MacBookTooShiny
+    DockerWhaleNotSwimming
+    KubernetesPodsHomesick
+    JiraTicketEscaped
+    BacklogTooLogged
+    SprintTooMarathon
+    ScrumTooChaotic
+    WaterfallTooWet
+    AgileNotNimble
+    TechnicalDebtCollector
+    LegacyCodeHaunting
+    UnitTestsTooUnity
+    IntegrationTestsDancing
+    E2ETestsDaydreaming
+    CICDPipelineClogged
+    DevOpsSleeping
+    ProdEnvAngry
+    StagingStaged
+    TestEnvTesting
+    LocalhostLost
+    PortsAllBusy
+    MemoryLeakingSlowly
+    CPUOnStrike
+    GPUMining
+    RAMDownloading
+    SSLCertificateShy
+    APITooRESTful
+    GraphQLTooGraphy
+    WebsocketDisconnected
+end
+
+const ProgrammerExcuseSet = enumsettype(ProgrammerExcuse)
 
 @testset "big enum" begin
-    
-    ProgrammerExcuseSet = enumsettype(ProgrammerExcuse)
-
     @test length(instances(ProgrammerExcuse)) > 64
     @test 8*sizeof(ProgrammerExcuseSet) >= length(instances(ProgrammerExcuse))
     s = ProgrammerExcuseSet()
@@ -188,7 +188,7 @@ end
         @test collect(s) == collect(instances(ProgrammerExcuse))[1:i]
     end
     fuzz_booleans(ProgrammerExcuseSet)
-@test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." enumsettype(ProgrammerExcuse; carrier=UInt64)
+    @test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." enumsettype(ProgrammerExcuse; carrier=UInt64)
 end
 
 
