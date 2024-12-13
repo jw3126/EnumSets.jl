@@ -211,23 +211,33 @@ end
     @enum X8 X8_1 X8_2 X8_3 X8_4 X8_5 X8_6 X8_7 X8_8 X8_9 X8_10 X8_11 X8_12 X8_13 X8_14 X8_15 X8_16 X8_17 X8_18 X8_19 X8_20 X8_21 X8_22 X8_23 X8_24 X8_25 X8_26 X8_27 X8_28 X8_29 X8_30 X8_31 X8_32 X8_33 X8_34 X8_35 X8_36 X8_37 X8_38 X8_39 X8_40 X8_41 X8_42 X8_43 X8_44 X8_45 X8_46 X8_47 X8_48 X8_49 X8_50 X8_51 X8_52 X8_53 X8_54 X8_55 X8_56 X8_57 X8_58 X8_59 X8_60 X8_61 X8_62 X8_63 X8_64
     @enum X16 X16_1 X16_2 X16_3 X16_4 X16_5 X16_6 X16_7 X16_8 X16_9 X16_10 X16_11 X16_12 X16_13 X16_14 X16_15 X16_16 X16_17 X16_18 X16_19 X16_20 X16_21 X16_22 X16_23 X16_24 X16_25 X16_26 X16_27 X16_28 X16_29 X16_30 X16_31 X16_32 X16_33 X16_34 X16_35 X16_36 X16_37 X16_38 X16_39 X16_40 X16_41 X16_42 X16_43 X16_44 X16_45 X16_46 X16_47 X16_48 X16_49 X16_50 X16_51 X16_52 X16_53 X16_54 X16_55 X16_56 X16_57 X16_58 X16_59 X16_60 X16_61 X16_62 X16_63 X16_64 X16_65 X16_66 X16_67 X16_68 X16_69 X16_70 X16_71 X16_72 X16_73 X16_74 X16_75 X16_76 X16_77 X16_78 X16_79 X16_80 X16_81 X16_82 X16_83 X16_84 X16_85 X16_86 X16_87 X16_88 X16_89 X16_90 X16_91 X16_92 X16_93 X16_94 X16_95 X16_96 X16_97 X16_98 X16_99 X16_100 X16_101 X16_102 X16_103 X16_104 X16_105 X16_106 X16_107 X16_108 X16_109 X16_110 X16_111 X16_112 X16_113 X16_114 X16_115 X16_116 X16_117 X16_118 X16_119 X16_120 X16_121 X16_122 X16_123 X16_124 X16_125 X16_126 X16_127 X16_128
 
-    @test sizeof(enumsettype(X1)) == 1
-    @test length(instances(X1)) == 8
-    fuzz_booleans(enumsettype(X1))
-
-    @test sizeof(enumsettype(X2)) == 2
+    @test length(instances(X1)) == 1*8
     @test length(instances(X2)) == 2*8
-    fuzz_booleans(enumsettype(X2))
-
-    @test sizeof(enumsettype(X4)) == 4
     @test length(instances(X4)) == 4*8
-    fuzz_booleans(enumsettype(X4))
-
-    @test sizeof(enumsettype(X8)) == 8
     @test length(instances(X8)) == 8*8
-    fuzz_booleans(enumsettype(X8))
-
-    @test sizeof(enumsettype(X16)) == 16
     @test length(instances(X16)) == 16*8
-    fuzz_booleans(enumsettype(X16))
+
+    SetX1 = enumsettype(X1)
+    SetX2 = enumsettype(X2)
+    SetX4 = enumsettype(X4)
+    SetX8 = enumsettype(X8)
+    SetX16 = enumsettype(X16)
+
+    @test sizeof(SetX1) == 1
+    @test sizeof(SetX2) == 2
+    @test sizeof(SetX4) == 4
+    @test sizeof(SetX8) == 8
+    @test sizeof(SetX16) == 16
+
+    @test EnumSets.PackingTrait(SetX1()) == EnumSets.OffsetBasedPacking{0}()
+    @test EnumSets.PackingTrait(SetX2()) == EnumSets.OffsetBasedPacking{0}()
+    @test EnumSets.PackingTrait(SetX4()) == EnumSets.OffsetBasedPacking{0}()
+    @test EnumSets.PackingTrait(SetX8()) == EnumSets.OffsetBasedPacking{0}()
+    @test EnumSets.PackingTrait(SetX16()) == EnumSets.OffsetBasedPacking{0}()
+
+    fuzz_booleans(SetX1)
+    fuzz_booleans(SetX2)
+    fuzz_booleans(SetX4)
+    fuzz_booleans(SetX8)
+    fuzz_booleans(SetX16)
 end
