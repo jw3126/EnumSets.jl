@@ -72,7 +72,7 @@ function workout(sets)
     s, b
 end
 
-@enumset AlphabetSet <: EnumSet{Alphabet}
+const AlphabetSet = enumsettype(Alphabet)
 
 sets = [AlphabetSet(rand(instances(Alphabet)) for _ in 0:length(instances(Alphabet))) for _ in 1:100]
 basesets = map(Set, sets)
