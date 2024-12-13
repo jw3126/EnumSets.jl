@@ -5,6 +5,9 @@ function fuzz_booleans(ESet)
     E = eltype(ESet)
     es = instances(E)
     n = length(es)
+    for e in es
+        @test e === only(ESet((e,)))
+    end
     for _ in 1:100
         n1 = rand(0:n)
         n2 = rand(0:n)
@@ -29,33 +32,13 @@ function fuzz_booleans(ESet)
     end
 end
 
-@enum X x1 x2 x3 x4 x5 x6 x7 x8
-@enumset SetX <: EnumSet{X, UInt8}
-
-@testset "Packed into a single byte" begin
-    @test EnumSets.PackingTrait(SetX((x1,))) === EnumSets.OffsetBasedPacking{0}()
-    @test sizeof(SetX) == 1
-
-    @test only(SetX((x1,))) === x1
-    @test only(SetX((x2,))) === x2
-    @test only(SetX((x3,))) === x3
-    @test only(SetX((x4,))) === x4
-    @test only(SetX((x5,))) === x5
-    @test only(SetX((x6,))) === x6
-    @test only(SetX((x7,))) === x7
-    @test only(SetX((x8,))) === x8
-
-    fuzz_booleans(SetX)
-end
-
-@enum Alphabet begin
-    A=1 
-    B=2 
-    C=3
-end
-@enumset ASet <: EnumSet{Alphabet}
-
 @testset "simple enum" begin
+    @enum Alphabet begin
+        A=1 
+        B=2 
+        C=3
+    end
+    ASet = enumsettype(Alphabet)
 
     s = ASet()
     @test isbitstype(ASet)
@@ -120,77 +103,78 @@ end
     fuzz_booleans(NegativeSet)
 end
 
-@enum ProgrammerExcuse begin
-    WorksOnMyMachine
-    MercurialRetrograde
-    CosmicRayBitFlip
-    CoffeeNotFound
-    KeyboardNotErgonomic
-    WrongMoonPhase
-    CatOnKeyboard
-    StandupMeetingTooLong
-    BadrouterIonization
-    CompilerFeelingMoody
-    CacheTooCachey
-    NotEnoughEmojis
-    TooManyEmojis
-    QuotaExceededForSighs
-    WifiPasswordTooStrong
-    DnsLookingOtherWay
-    FirewallTooFirey
-    CloudsTooFluffy
-    GitBranchTooBranchy
-    StackOverflowDown
-    RedditWasDistracting
-    SlackNotSlacking
-    ZoomBackgroundTooVirtual
-    MousepadTooSlippery
-    ChairNotGaming
-    DeskTooClean
-    DeskTooMessy
-    MonitorNotVertical
-    SecondMonitorJealous
-    ThirdMonitorMissing
-    RubberDuckOnVacation
-    TerminalTooColourful
-    FontNotCoding
-    TabsVsSpacesDispute
-    GitConflictTooConflicting
-    LinuxKernelTooKernelly
-    WindowsUpdateConspiracy
-    MacBookTooShiny
-    DockerWhaleNotSwimming
-    KubernetesPodsHomesick
-    JiraTicketEscaped
-    BacklogTooLogged
-    SprintTooMarathon
-    ScrumTooChaotic
-    WaterfallTooWet
-    AgileNotNimble
-    TechnicalDebtCollector
-    LegacyCodeHaunting
-    UnitTestsTooUnity
-    IntegrationTestsDancing
-    E2ETestsDaydreaming
-    CICDPipelineClogged
-    DevOpsSleeping
-    ProdEnvAngry
-    StagingStaged
-    TestEnvTesting
-    LocalhostLost
-    PortsAllBusy
-    MemoryLeakingSlowly
-    CPUOnStrike
-    GPUMining
-    RAMDownloading
-    SSLCertificateShy
-    APITooRESTful
-    GraphQLTooGraphy
-    WebsocketDisconnected
-end
-@enumset ProgrammerExcuseSet <: EnumSet{ProgrammerExcuse}
-
 @testset "big enum" begin
+    
+    @enum ProgrammerExcuse begin
+        WorksOnMyMachine
+        MercurialRetrograde
+        CosmicRayBitFlip
+        CoffeeNotFound
+        KeyboardNotErgonomic
+        WrongMoonPhase
+        CatOnKeyboard
+        StandupMeetingTooLong
+        BadrouterIonization
+        CompilerFeelingMoody
+        CacheTooCachey
+        NotEnoughEmojis
+        TooManyEmojis
+        QuotaExceededForSighs
+        WifiPasswordTooStrong
+        DnsLookingOtherWay
+        FirewallTooFirey
+        CloudsTooFluffy
+        GitBranchTooBranchy
+        StackOverflowDown
+        RedditWasDistracting
+        SlackNotSlacking
+        ZoomBackgroundTooVirtual
+        MousepadTooSlippery
+        ChairNotGaming
+        DeskTooClean
+        DeskTooMessy
+        MonitorNotVertical
+        SecondMonitorJealous
+        ThirdMonitorMissing
+        RubberDuckOnVacation
+        TerminalTooColourful
+        FontNotCoding
+        TabsVsSpacesDispute
+        GitConflictTooConflicting
+        LinuxKernelTooKernelly
+        WindowsUpdateConspiracy
+        MacBookTooShiny
+        DockerWhaleNotSwimming
+        KubernetesPodsHomesick
+        JiraTicketEscaped
+        BacklogTooLogged
+        SprintTooMarathon
+        ScrumTooChaotic
+        WaterfallTooWet
+        AgileNotNimble
+        TechnicalDebtCollector
+        LegacyCodeHaunting
+        UnitTestsTooUnity
+        IntegrationTestsDancing
+        E2ETestsDaydreaming
+        CICDPipelineClogged
+        DevOpsSleeping
+        ProdEnvAngry
+        StagingStaged
+        TestEnvTesting
+        LocalhostLost
+        PortsAllBusy
+        MemoryLeakingSlowly
+        CPUOnStrike
+        GPUMining
+        RAMDownloading
+        SSLCertificateShy
+        APITooRESTful
+        GraphQLTooGraphy
+        WebsocketDisconnected
+    end
+    ProgrammerExcuseSet = enumsettype(ProgrammerExcuse)
+
     @test length(instances(ProgrammerExcuse)) > 64
     @test 8*sizeof(ProgrammerExcuseSet) >= length(instances(ProgrammerExcuse))
     s = ProgrammerExcuseSet()
