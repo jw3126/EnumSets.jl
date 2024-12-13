@@ -9,7 +9,7 @@ julia> using EnumSets
 
 julia> @enum Lang Python Julia C
 
-julia> @enumset LangSet <: EnumSet{Lang}
+julia> const LangSet = enumsettype(Lang)
 
 julia> s = LangSet((Python, Julia))
 LangSet with 2 elements:
