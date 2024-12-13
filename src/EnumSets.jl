@@ -86,11 +86,17 @@ end
 
 struct EnumSet{E, C, P <: PackingTrait} <: AbstractSet{E} 
     _data::C
-    packing_trait::P
+    function EnumSet{E,C,P}(data::C) where {E,C,P}
+        new{E,C,P}(data)
+    end
 end
 
 function EnumSet{E,C,P}()::EnumSet{E,C,P} where {E,C,P}
-    EnumSet{E,C,P}(zero(C), P())
+    EnumSet{E,C,P}(zero(C))
+end
+
+function EnumSet{E,C,P}(s::EnumSet{E,C,P})::EnumSet{E,C,P} where {E,C,P}
+    s
 end
 
 function EnumSet{E,C,P}(itr)::EnumSet{E,C,P} where {E,C,P}
@@ -101,8 +107,8 @@ function EnumSet{E,C,P}(itr)::EnumSet{E,C,P} where {E,C,P}
     ret
 end
 
-function PackingTrait(s::EnumSet)::PackingTrait
-    s.packing_trait
+function PackingTrait(s::EnumSet{E,C,P})::PackingTrait where {E,C,P}
+    P()
 end
 
 function _get_data(s)
@@ -110,7 +116,7 @@ function _get_data(s)
 end
 
 function setbit(s::EnumSet, i::Int, val::Bool)::typeof(s)
-    typeof(s)(setbit(_get_data(s), i, val), PackingTrait(s))
+    typeof(s)(setbit(_get_data(s), i, val))
 end
 function getbit(s::EnumSet, i::Int)::Bool
     getbit(_get_data(s), i)
@@ -164,7 +170,7 @@ end
 function boolean(f,s::S, ss...)::S where {S <: EnumSet}
     d = _get_data(s)
     ds = map(_get_data ∘ S, ss)
-    S(f(d, ds...), PackingTrait(s))
+    S(f(d, ds...))
 end
 
 function Base.union(s1::S, ss...)::S where {S <: EnumSet}
