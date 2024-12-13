@@ -9,39 +9,39 @@ julia> using EnumSets
 
 julia> @enum Lang Python Julia C
 
-julia> @enumset LangSet <: EnumSet{Lang}
+julia> const LangSet = enumsettype(Lang)
+EnumSets.EnumSet{Lang, UInt8, EnumSets.OffsetBasedPacking{0}}
 
 julia> s = LangSet((Python, Julia))
-LangSet with 2 elements:
+EnumSets.EnumSet{Lang, UInt8, EnumSets.OffsetBasedPacking{0}} with 2 elements:
   Python
   Julia
 
 julia> push(s, C) # s is immutable, but we can create modified copies
-LangSet with 3 elements:
+EnumSets.EnumSet{Lang, UInt8, EnumSets.OffsetBasedPacking{0}} with 3 elements:
   Python
   Julia
   C
 
 julia> s
-LangSet with 2 elements:
+EnumSets.EnumSet{Lang, UInt8, EnumSets.OffsetBasedPacking{0}} with 2 elements:
   Python
   Julia
 
 julia> s2 = LangSet((C, Python))
-LangSet with 2 elements:
+EnumSets.EnumSet{Lang, UInt8, EnumSets.OffsetBasedPacking{0}} with 2 elements:
   Python
   C
 
 julia> s ∪ s2
-LangSet with 3 elements:
+EnumSets.EnumSet{Lang, UInt8, EnumSets.OffsetBasedPacking{0}} with 3 elements:
   Python
   Julia
   C
 
 julia> s ∩ s2
-LangSet with 1 element:
+EnumSets.EnumSet{Lang, UInt8, EnumSets.OffsetBasedPacking{0}} with 1 element:
   Python
-
 ...
 ```
 
@@ -72,7 +72,7 @@ function workout(sets)
     s, b
 end
 
-@enumset AlphabetSet <: EnumSet{Alphabet}
+const AlphabetSet = enumsettype(Alphabet)
 
 sets = [AlphabetSet(rand(instances(Alphabet)) for _ in 0:length(instances(Alphabet))) for _ in 1:100]
 basesets = map(Set, sets)

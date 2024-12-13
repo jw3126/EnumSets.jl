@@ -1,6 +1,6 @@
 module EnumSets
 export @enumset
-export push
+export push, enumsettype
 
 function nbits(::Type{T}) where {T}
     8 * sizeof(T)
@@ -22,7 +22,7 @@ end
 abstract type PackingTrait end
 struct InstanceBasedPacking <:PackingTrait
 end
-struct OffsetBasedPacking{offset} end
+struct OffsetBasedPacking{offset} <:PackingTrait end
 
 function get_offset(::OffsetBasedPacking{offset})::Int where {offset}
     offset
@@ -84,7 +84,32 @@ function suggest_carriertype(E)
     end
 end
 
-abstract type EnumSet{E, Carrier} <: AbstractSet{E} end
+struct EnumSet{E, C, P <: PackingTrait} <: AbstractSet{E} 
+    _data::C
+    function EnumSet{E,C,P}(data::C) where {E,C,P}
+        new{E,C,P}(data)
+    end
+end
+
+function EnumSet{E,C,P}()::EnumSet{E,C,P} where {E,C,P}
+    EnumSet{E,C,P}(zero(C))
+end
+
+function EnumSet{E,C,P}(s::EnumSet{E,C,P})::EnumSet{E,C,P} where {E,C,P}
+    s
+end
+
+function EnumSet{E,C,P}(itr)::EnumSet{E,C,P} where {E,C,P}
+    ret = EnumSet{E,C,P}()
+    for e in itr
+        ret = push(ret, convert(E, e))
+    end
+    ret
+end
+
+function PackingTrait(s::EnumSet{E,C,P})::PackingTrait where {E,C,P}
+    P()
+end
 
 function _get_data(s)
     s._data
@@ -172,6 +197,9 @@ function make_error_msg(ex)
     """
 end
 
+"""
+This macro is deprecate. Use `const MySet = enumsettype(MyEnum)` instead.
+"""
 macro enumset(ex)
     if !Meta.isexpr(ex, :<:)
         error(make_error_msg(ex))
@@ -182,28 +210,20 @@ macro enumset(ex)
     end
     if length(ex_EnumSet.args) == 2
         symbol_EnumSet, E = ex_EnumSet.args
-        Carrier = nothing
+        C = nothing
     elseif length(ex_EnumSet.args) == 3
-        symbol_EnumSet, E, Carrier = ex_EnumSet.args
+        symbol_EnumSet, E, C = ex_EnumSet.args
     else
         error(make_error_msg(ex_EnumSet))
     end
     E = __module__.eval(E)
-    Carrier = __module__.eval(Carrier)
-    if isnothing(Carrier)
-        Carrier = suggest_carriertype(E)
+    C = __module__.eval(C)
+    if isnothing(C)
+        C = suggest_carriertype(E)
     end
-    esc(enumsetmacro(E, ESet, Carrier))
+    esc(:(const $ESet = $enumsettype($E; carrier=$C)))
 end
 
-function from_itr(::Type{ESet}, itr)::ESet where {ESet <: EnumSet}
-    ret = ESet()
-    E = eltype(ESet)
-    for e in itr
-        ret = push(ret, convert(E, e))
-    end
-    ret
-end
 
 function enum_fits_into_offset_packing(E, nbits)
     lo, hi = extrema(Integer, instances(E))
@@ -211,44 +231,42 @@ function enum_fits_into_offset_packing(E, nbits)
     (abs(hi - lo) < nbits) && (abs(Float64(hi) - Float64(lo)) < nbits)
 end
 
-function enumsetmacro(E::Type, ESet::Symbol, Carrier::Type)
+"""
+    enumsettype(::Type{E})::Type
 
-    if length(instances(E)) > nbits(Carrier)
-        msg = """
-        Enum $E does not fit into carrier type $Carrier.
-        length(instances($E)) = $(length(instances(E)))
-        nbits($Carrier)       = $(nbits(Carrier))
-        """
-        return :(error($msg))
+Return a subtype of `EnumSet` suitable for storing instances of an enum `E`.
+Typical usage looks like this:
+```julia
+@enum Alphabet A B C
+const MySet = enumsettype(Alphabet)
+
+ab = MySet((A, B))
+bc = MySet((B, C))
+ab ∩ bc
+...
+```
+"""
+function enumsettype(::Type{E}; carrier::Union{Nothing, Type}=nothing)::Type where {E}
+    C = if isnothing(carrier)
+        suggest_carriertype(E)
+    else
+        carrier
     end
-    PTrait = if enum_fits_into_offset_packing(E, nbits(Carrier))
-        OffsetBasedPacking{1-minimum(Integer, instances(E))}
+    if length(instances(E)) > nbits(C)
+        msg = """
+        Enum $E does not fit into carrier type $C.
+        length(instances($E)) = $(length(instances(E)))
+        nbits($C)       = $(nbits(C))
+        """
+        error(msg)
+    end
+    P = if enum_fits_into_offset_packing(E, nbits(C))
+        OffsetBasedPacking{-minimum(Int, instances(E))}
     else
         InstanceBasedPacking
     end
-    M = @__MODULE__()
-    ret = quote
-        struct $ESet <: $EnumSet{$E, $Carrier}
-            _data::$Carrier
-            function $ESet(carrier::$Carrier)
-                new(carrier)
-            end
-        end
-        function $ESet()::$ESet
-            $ESet(zero($Carrier))
-        end
-        function $ESet(e::$ESet)::$ESet
-            e
-        end
-        function $ESet(itr)::$ESet
-            $from_itr($ESet, itr)
-        end
-        function $M.PackingTrait(::$ESet)::$PTrait
-            $PTrait()
-        end
-    end
-
-    ret
+    EnumSet{E, C, P}
 end
+
 
 end
