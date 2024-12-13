@@ -29,6 +29,26 @@ function fuzz_booleans(ESet)
     end
 end
 
+@enum X x1 x2 x3 x4 x5 x6 x7 x8
+
+@testset "Packed into a single byte" begin
+    @enumset SetX <: EnumSet{X, UInt8}
+    @test EnumSets.PackingTrait(SetX((x1,))) === EnumSets.OffsetBasedPacking{0}()
+    @test sizeof(SetX) == 1
+
+    @test only(SetX((x1,))) === x1
+    @test only(SetX((x2,))) === x2
+    @test only(SetX((x3,))) === x3
+    @test only(SetX((x4,))) === x4
+    @test only(SetX((x5,))) === x5
+    @test only(SetX((x6,))) === x6
+    @test only(SetX((x7,))) === x7
+    @test only(SetX((x8,))) === x8
+
+    @enumset SetX8 <: EnumSet{X, UInt8}
+    fuzz_booleans(SetX8)
+end
+
 @enum Alphabet begin
     A=1 
     B=2 
