@@ -197,6 +197,9 @@ function make_error_msg(ex)
     """
 end
 
+"""
+This macro is deprecate. Use `const MySet = enumsettype(MyEnum)` instead.
+"""
 macro enumset(ex)
     if !Meta.isexpr(ex, :<:)
         error(make_error_msg(ex))
@@ -228,6 +231,21 @@ function enum_fits_into_offset_packing(E, nbits)
     (abs(hi - lo) < nbits) && (abs(Float64(hi) - Float64(lo)) < nbits)
 end
 
+"""
+    enumsettype(::Type{E})::Type
+
+Return a subtype of `EnumSet` suitable for storing instances of an enum `E`.
+Typical usage looks like this:
+```julia
+@enum Alphabet A B C
+const MySet = enumsettype(Alphabet)
+
+ab = MySet((A, B))
+bc = MySet((B, C))
+ab ∩ bc
+...
+```
+"""
 function enumsettype(::Type{E}; carrier::Union{Nothing, Type}=nothing)::Type where {E}
     C = if isnothing(carrier)
         suggest_carriertype(E)
