@@ -185,6 +185,14 @@ function Base.symdiff(s1::S, ss...)::S where {S <: EnumSet}
     boolean(xor,s1,ss...)
 end
 
+function bitdiff(x, xs...)
+    (&)(x, map(~, xs)...)
+end
+
+function Base.setdiff(s1::S, ss...)::S where {S <: EnumSet}
+    boolean(bitdiff,s1,ss...)
+end
+
 function Base.issubset(s1::S, s2::S)::Bool where {S <: EnumSet}
     s1 ∩ s2 === s1
 end

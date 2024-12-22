@@ -22,10 +22,12 @@ function fuzz_booleans(ESet)
 
         @test (s1 ∩ s2) === ESet(Set(s1) ∩ Set(s2))
         @test (s1 ∪ s2) === ESet(Set(s1) ∪ Set(s2))
+        @test setdiff(s1, s2) === ESet(setdiff(Set(s1), Set(s2)))
         @test symdiff(s1, s2) === ESet(symdiff(Set(s1), Set(s2)))
 
         @test ∩(ss...) === ESet(∩(Set.(ss)...))
         @test ∪(ss...) === ESet(∪(Set.(ss)...))
+        @test setdiff(ss...) === ESet(setdiff(Set.(ss)...))
         @test symdiff(ss...) === ESet(symdiff(Set.(ss)...))
         e = rand(es)
         @test (e in s1) === (e in Set(s1))
@@ -63,6 +65,8 @@ end
     @test union(ASet([A]), ASet([B]), ASet([A,B])) == ASet([A, B])
 
     @test union(ASet([A]), [B], (B,)) === ASet((A, B))
+
+    @testset setdiff(ASet((A,B)), ASet((B,C))) === ASet((A,))
 
     @test intersect(ASet([A,B]), ASet([C,B])) === ASet([B])
 
