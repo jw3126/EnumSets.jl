@@ -1,7 +1,7 @@
 using EnumSets
 using Test
 
-function fuzz_booleans(ESet)
+function fuzz(ESet)
     E = eltype(ESet)
     es = instances(E)
     n = length(es)
@@ -13,6 +13,8 @@ function fuzz_booleans(ESet)
         n2 = rand(0:n)
         s1 = ESet(rand(es, n1))
         s2 = ESet(rand(es, n2))
+        # no hash collisions
+        @test (hash(s1) == hash(s2)) === (s1 === s2)
         ss = [ESet(rand(es, n2)) for _ in 1:rand(1:4)]
         @test length(s1) === length(Set(s1)) <= n1
         @test length(s1) === count(Returns(true), s1)
@@ -88,7 +90,7 @@ end
     next = iterate(s, state)
     @test isnothing(next)
 
-    fuzz_booleans(ASet)
+    fuzz(ASet)
 end
 
 @enum Negative::Int128 begin
@@ -107,7 +109,7 @@ end
     @test !(NegativeSet((a,b, d)) ⊊ NegativeSet((a,b, d)))
     @test NegativeSet((a,b)) ⊈ NegativeSet((a, c, d))
 
-    fuzz_booleans(NegativeSet)
+    fuzz(NegativeSet)
 end
 
 @enum ProgrammerExcuse begin
@@ -194,7 +196,7 @@ const ProgrammerExcuseSet = enumsettype(ProgrammerExcuse)
         @test length(s) == i
         @test collect(s) == collect(instances(ProgrammerExcuse))[1:i]
     end
-    fuzz_booleans(ProgrammerExcuseSet)
+    fuzz(ProgrammerExcuseSet)
     @test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." enumsettype(ProgrammerExcuse; carrier=UInt64)
 end
 
@@ -242,11 +244,11 @@ end
     @test EnumSets.PackingTrait(SetX8()) == EnumSets.OffsetBasedPacking{0}()
     @test EnumSets.PackingTrait(SetX16()) == EnumSets.OffsetBasedPacking{0}()
 
-    fuzz_booleans(SetX1)
-    fuzz_booleans(SetX2)
-    fuzz_booleans(SetX4)
-    fuzz_booleans(SetX8)
-    fuzz_booleans(SetX16)
+    fuzz(SetX1)
+    fuzz(SetX2)
+    fuzz(SetX4)
+    fuzz(SetX8)
+    fuzz(SetX16)
 end
 
 @testset "redefine" begin

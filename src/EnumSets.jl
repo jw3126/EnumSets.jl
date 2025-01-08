@@ -147,6 +147,10 @@ function Base.length(s::EnumSet)::Int
     count_ones(s._data)
 end
 
+function Base.hash(s::EnumSet, h::UInt)::UInt
+    hash(_get_data(s), h)
+end
+
 function Base.filter(f, s::EnumSet)::typeof(s)
     # could use boolean here
     ret = typeof(s)()
