@@ -247,3 +247,13 @@ end
     fuzz_booleans(SetX8)
     fuzz_booleans(SetX16)
 end
+
+@testset "redefine" begin
+    @enum Alphabet A B C
+    S = enumsettype(Alphabet)
+    ab = S((A, B))
+    @enum Alphabet A B C D
+    @test S === enumsettype(Alphabet)
+    @test ab === S((A, B))
+    @test push(ab, D) == S((A, B, D))
+end
