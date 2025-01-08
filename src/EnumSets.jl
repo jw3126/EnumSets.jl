@@ -19,16 +19,6 @@ function setbit(xT::Integer, i, val)
     xT | (valT << iT)
 end
 
-function Base.filter(f, s::EnumSet)::typeof(s)
-    ret = typeof(s)()
-    for e in s
-        if f(e)
-            ret = push(ret, e)
-        end
-    end
-    ret
-end
-
 abstract type PackingTrait end
 struct InstanceBasedPacking <:PackingTrait
 end
@@ -155,6 +145,16 @@ function capacity(s::EnumSet)::Int
 end
 function Base.length(s::EnumSet)::Int
     count_ones(s._data)
+end
+
+function Base.filter(f, s::EnumSet)::typeof(s)
+    ret = typeof(s)()
+    for e in s
+        if f(e)
+            ret = push(ret, e)
+        end
+    end
+    ret
 end
 
 function blsr(x::T)::T where {T<:Integer}
