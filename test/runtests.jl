@@ -45,6 +45,7 @@ end
     ASet = enumsettype(Alphabet)
 
     s = ASet()
+    @test typeof(s) === ASet
     @test isbitstype(ASet)
     @test isempty(s)
     @test length(s) == 0
