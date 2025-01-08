@@ -19,6 +19,16 @@ function setbit(xT::Integer, i, val)
     xT | (valT << iT)
 end
 
+function Base.filter(f, s::EnumSet)::typeof(s)
+    ret = typeof(s)()
+    for e in s
+        if f(e)
+            ret = push(ret, e)
+        end
+    end
+    ret
+end
+
 abstract type PackingTrait end
 struct InstanceBasedPacking <:PackingTrait
 end

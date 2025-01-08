@@ -31,6 +31,8 @@ function fuzz_booleans(ESet)
         @test symdiff(ss...) === ESet(symdiff(Set.(ss)...))
         e = rand(es)
         @test (e in s1) === (e in Set(s1))
+
+        @test (s1 ∩ s2) === filter(in(s1), s2)
     end
 end
 
