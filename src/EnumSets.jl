@@ -148,6 +148,7 @@ function Base.length(s::EnumSet)::Int
 end
 
 function Base.filter(f, s::EnumSet)::typeof(s)
+    # could use boolean here
     ret = typeof(s)()
     for e in s
         if f(e)
