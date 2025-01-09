@@ -93,6 +93,20 @@ end
     fuzz(ASet)
 end
 
+@testset "hash eq" begin
+    @enum English Hello World
+    @enum Spanish Hola Mundo
+    EnglishSet = enumsettype(English)
+    SpanishSet = enumsettype(Spanish)
+    @test hash(EnglishSet((Hello,))) != hash(EnglishSet((World,)))
+    @test hash(EnglishSet((Hello,))) != hash(Hello)
+    @test hash(SpanishSet((Hola,))) != hash(EnglishSet((Hello,)))
+    @test EnglishSet((Hello,)) != SpanishSet((Hola,))
+    @test !isequal(EnglishSet((Hello,)), SpanishSet((Hola,)))
+    @test isequal(EnglishSet((Hello,)), EnglishSet((Hello,)))
+    @test ==(EnglishSet((Hello,)), EnglishSet((Hello,)))
+end
+
 @enum Negative::Int128 begin
     a=1
     b=-1
