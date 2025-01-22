@@ -91,6 +91,10 @@ struct EnumSet{E, C, P <: PackingTrait} <: AbstractSet{E}
     end
 end
 
+function Base.show(io::IO, s::EnumSet)
+    print(io, typeof(s), '(', Tuple(s), ')')
+end
+
 function EnumSet{E,C,P}()::EnumSet{E,C,P} where {E,C,P}
     EnumSet{E,C,P}(zero(C))
 end

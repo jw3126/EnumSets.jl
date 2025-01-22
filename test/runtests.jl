@@ -105,6 +105,9 @@ end
     @test !isequal(EnglishSet((Hello,)), SpanishSet((Hola,)))
     @test isequal(EnglishSet((Hello,)), EnglishSet((Hello,)))
     @test ==(EnglishSet((Hello,)), EnglishSet((Hello,)))
+
+    @test occursin("Hello", sprint(show,EnglishSet((Hello,))))
+    @test !occursin("World", sprint(show, EnglishSet((Hello,))))
 end
 
 @enum Negative::Int128 begin
