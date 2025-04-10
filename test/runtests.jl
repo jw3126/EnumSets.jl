@@ -1,4 +1,5 @@
 using EnumSets
+import EnumSets as ES
 using Test
 
 function fuzz(ESet)
@@ -38,6 +39,46 @@ function fuzz(ESet)
     end
 end
 
+@testset "packing" begin
+    @enum ZeroToSeven begin
+        x0
+        x1
+        x2
+        x3
+        x4
+        x5
+        x6
+        x7
+    end
+    @enum OneToEight begin
+        y1 = 1
+        y2 = 2
+        y3 = 3
+        y4 = 4
+        y5 = 5
+        y6 = 6
+        y7 = 7
+        y8 = 8
+    end
+    @test sizeof(enumsettype(ZeroToSeven)) == 1
+    @test sizeof(enumsettype(OneToEight)) == 1
+    @test enumsettype(ZeroToSeven) === ES.EnumSet8{ZeroToSeven}
+    @test !(enumsettype(OneToEight) <: ES.EnumSet8)
+    fuzz(enumsettype(ZeroToSeven))
+    fuzz(enumsettype(OneToEight))
+
+    @test sizeof(ES.EnumSet8{ZeroToSeven}) == 1
+    @test sizeof(ES.EnumSet16{ZeroToSeven}) == 2
+    @test sizeof(ES.EnumSet32{ZeroToSeven}) == 4
+    @test sizeof(ES.EnumSet64{ZeroToSeven}) == 8
+    @test sizeof(ES.EnumSet128{ZeroToSeven}) == 16
+    fuzz(ES.EnumSet8{ZeroToSeven}) # more space no problem
+    fuzz(ES.EnumSet16{ZeroToSeven}) # more space no problem
+    fuzz(ES.EnumSet32{ZeroToSeven}) # more space no problem
+    fuzz(ES.EnumSet64{ZeroToSeven}) # more space no problem
+    fuzz(ES.EnumSet128{ZeroToSeven}) # more space no problem
+end
+
 @testset "simple enum" begin
     @enum Alphabet begin
         A=1 
@@ -45,6 +86,7 @@ end
         C=3
     end
     ASet = enumsettype(Alphabet)
+    @test ASet == ES.EnumSet8{Alphabet}
 
     s = ASet()
     @test typeof(s) === ASet
@@ -98,6 +140,8 @@ end
     @enum Spanish Hola Mundo
     EnglishSet = enumsettype(English)
     SpanishSet = enumsettype(Spanish)
+
+    @test EnglishSet == ES.EnumSet8{English}
     @test hash(EnglishSet((Hello,))) != hash(EnglishSet((World,)))
     @test hash(EnglishSet((Hello,))) != hash(Hello)
     @test hash(SpanishSet((Hola,))) != hash(EnglishSet((Hello,)))

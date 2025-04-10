@@ -91,6 +91,16 @@ struct EnumSetT{E, C, P <: PackingTrait} <: AbstractSet{E}
     end
 end
 
+function default_packing_type()
+    OffsetBasedPacking{0}
+end
+
+const EnumSet8{E} = EnumSetT{E, UInt8, default_packing_type()}
+const EnumSet16{E} = EnumSetT{E, UInt16, default_packing_type()}
+const EnumSet32{E} = EnumSetT{E, UInt32, default_packing_type()}
+const EnumSet64{E} = EnumSetT{E, UInt64, default_packing_type()}
+const EnumSet128{E} = EnumSetT{E, UInt128, default_packing_type()}
+
 function Base.show(io::IO, s::EnumSetT)
     print(io, typeof(s), '(', Tuple(s), ')')
 end
@@ -223,6 +233,15 @@ function enum_fits_into_offset_packing(E, nbits)
     (abs(hi - lo) < nbits) && (abs(Float64(hi) - Float64(lo)) < nbits)
 end
 
+function enum_fits_into_default_packing(E, nbits)
+    lo, hi = extrema(Integer, instances(E))
+    if lo < 0
+        return false
+    else
+        hi < nbits
+    end
+end
+
 """
     enumsettype(::Type{E})::Type
 
@@ -252,7 +271,9 @@ function enumsettype(::Type{E}; carrier::Union{Nothing, Type}=nothing)::Type whe
         """
         error(msg)
     end
-    P = if enum_fits_into_offset_packing(E, nbits(C))
+    P = if enum_fits_into_default_packing(E, nbits(C))
+        default_packing_type()
+    elseif enum_fits_into_offset_packing(E, nbits(C))
         OffsetBasedPacking{-minimum(Int, instances(E))}
     else
         InstanceBasedPacking
