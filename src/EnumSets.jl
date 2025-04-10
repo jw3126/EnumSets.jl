@@ -1,6 +1,6 @@
 module EnumSets
-export @enumset
 export push, enumsettype
+export enumdicttype
 
 function nbits(::Type{T}) where {T}
     8 * sizeof(T)
@@ -281,5 +281,152 @@ function enumsettype(::Type{E}; carrier::Union{Nothing, Type}=nothing)::Type whe
     EnumSetT{E, C, P}
 end
 
+################################################################################
+# EnumDictT 
+################################################################################
+mutable struct EnumDictT{K,V,Keys <: EnumSetT,ValStore} <: AbstractDict{K,V}
+    keys::Keys
+    value_store::ValStore
+    function EnumDictT{K,V,Keys,ValStore}(keys::Keys, value_store::ValStore) where {K,V,Keys,ValStore}
+        if eltype(keys) !== K
+            msg = """
+            eltype(keys) === K must hold. Got:
+            K = $K
+            Keys = $Keys
+            eltype(Keys) = $(eltype(Keys))
+            """
+            throw(ArgumentError(msg))
+        end
+        if eltype(value_store) !== V
+            msg = """
+            eltype(value_store) === V must hold. Got:
+            V = $V
+            ValStore = $ValStore
+            eltype(ValStore) = $(eltype(ValStore))
+            """
+            throw(ArgumentError(msg))
+        end
+        new{K,V,Keys,ValStore}(keys, value_store)
+    end
+end
+
+function make_empty(::Type{EnumDictT{K,V,Keys,ValStore}}) where {K,V,Keys,ValStore}
+    keys::Keys = Keys()
+    value_store::ValStore = ValStore(undef, 8*sizeof(Keys)) # we could make this smaller
+    EnumDictT{K,V,Keys,ValStore}(keys, value_store)
+end
+
+function cmd_dict(eq, d1, d2)::Bool
+    if !eq(keys(d1), keys(d2))
+        return false
+    end
+    for k in keys(d1)
+        if !eq(d1[k], d2[k])
+            return false
+        end
+    end
+    return true
+end
+
+function Base.isequal(d1::EnumDictT, d2::EnumDictT)
+    cmd_dict(isequal, d1, d2)
+end
+function Base.:(==)(d1::EnumDictT, d2::EnumDictT)
+    cmd_dict(==, d1, d2)
+end
+
+function Base.hash(d::EnumDictT, h::UInt)
+    h = hash(d.keys, h)
+    for v in values(d)
+        h = hash(v, h)
+    end
+    h
+end
+
+function Base.empty(d::EnumDictT)
+    make_empty(typeof(d))
+end
+
+function EnumDictT{K,V,Keys,ValStore}(pairs::Pair...) where {K,V,Keys,ValStore}
+    d = make_empty(EnumDictT{K,V,Keys,ValStore})
+    for (k,v) in pairs
+        d[k] = v
+    end
+    d
+end
+
+function EnumDictT{K,V,Keys,ValStore}((k,v)::Pair) where {K,V,Keys,ValStore}
+    d = make_empty(EnumDictT{K,V,Keys,ValStore})
+    d[k] = v
+    d
+end
+
+function EnumDictT{K,V,Keys,ValStore}(pairs) where {K,V,Keys,ValStore}
+    ret = EnumDictT{K,V,Keys,ValStore}()
+    for (k,v) in pairs
+        ret[k] = v
+    end
+    ret
+end
+
+const EnumDict8{K,V} = EnumDictT{K,V,EnumSet8{K},Vector{V}}
+const EnumDict16{K,V} = EnumDictT{K,V,EnumSet16{K},Vector{V}}
+const EnumDict32{K,V} = EnumDictT{K,V,EnumSet32{K},Vector{V}}
+const EnumDict64{K,V} = EnumDictT{K,V,EnumSet64{K},Vector{V}}
+const EnumDict128{K,V} = EnumDictT{K,V,EnumSet128{K},Vector{V}}
+
+function enumdicttype(::Type{Keys}) where {Keys}
+    K = eltype(Keys)
+    EnumDictT{K,V,Keys,Vector{V}} where {V}
+end
+
+function enumdicttype(::Type{Keys}, ::Type{V}) where {Keys <: EnumSetT,V}
+    enumdicttype(Keys){V}
+end
+
+
+function Base.keys(d::EnumDictT)
+    d.keys
+end
+
+function store_index_from_instance(d::EnumDictT{K,V,Keys}, key)::Int where {K,V,Keys}
+    keyT = convert(K, key)
+    bitindex_from_instance(K, PackingTrait(keys(d)), keyT) + 1
+end
+function Base.length(d::EnumDictT)
+    length(keys(d))
+end
+
+Base.@propagate_inbounds function Base.getindex(d::EnumDictT{K,V,Keys}, k)::V where {K,V,Keys}
+    i = store_index_from_instance(d, k)
+    d.value_store[i]
+end
+
+Base.@propagate_inbounds function Base.setindex!(d::EnumDictT, v, k)
+    i = store_index_from_instance(d, k)
+    d.value_store[i] = v
+    d.keys = push(d.keys, k)
+    d
+end
+function Base.delete!(d::EnumDictT, k)
+    d.keys = setdiff(d.keys, (k,))
+    d
+end
+function Base.iterate(d::EnumDictT, kstate...)
+    knext = iterate(keys(d), kstate...)
+    if isnothing(knext)
+        nothing
+    else
+        k, state = knext
+        v = getindex(d, k)
+        (k => v), state
+    end
+end
+
+function Base.merge(d::EnumDictT, others::AbstractDict...)
+    ret = copy(d)
+    merge!(ret, others...)
+    ret
+end
 
 end

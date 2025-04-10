@@ -2,6 +2,10 @@ using EnumSets
 import EnumSets as ES
 using Test
 
+function issame(x,y)
+    isequal(typeof(x), typeof(y)) && isequal(x,y)
+end
+
 function fuzz_set(ESet)
     E = eltype(ESet)
     es = instances(E)
@@ -36,6 +40,35 @@ function fuzz_set(ESet)
         @test (e in s1) === (e in Set(s1))
 
         @test (s1 ∩ s2) === filter(in(s1), s2)
+    end
+end
+
+function fuzz_dict(EDict)
+    ESet = typeof(keys(EDict()))
+    E = keytype(EDict)
+    V = valtype(EDict)
+    d = Dict{E,V}()
+    ed = EDict(d)
+    @test ed isa EDict
+    @test isempty(ed)
+    for _ in 1:100
+        iop = rand((:getindex, :setindex, :setindex, :delete))
+        if iop == :getindex
+            k = rand(instances(E))
+            @test haskey(ed, k) == haskey(d, k)
+        elseif iop == :setindex
+            k = rand(instances(E))
+            v = rand(V)
+            d[k] = v
+            ed[k] = v
+        elseif iop == :delete
+            k = rand(instances(E))
+            if haskey(d, E)
+                delete!(d, k)
+                delete!(ed, k)
+            end
+        end
+        @test ed == d
     end
 end
 
@@ -319,4 +352,28 @@ end
     @test S === enumsettype(Alphabet)
     @test ab === S((A, B))
     @test push(ab, D) == S((A, B, D))
+end
+
+@testset "EnumDictT" begin
+    @enum Alphabet begin
+        A=1 
+        B=2 
+        C=3
+    end
+    ASet = enumsettype(Alphabet)
+    ADict = enumdicttype(ASet, Int)
+    d = ADict([A=>1, B=>2])
+    @test issame(d, ADict(A=>1, B=>2))
+    @test length(d) == 2
+    @test !isempty(d)
+    d2 = copy(d)
+    @test issame(d, copy(d))
+    d[C] = 3
+    @test !isempty(d)
+    @test haskey(d, C)
+    @test !haskey(d2, C)
+    d = ADict([A=>1, B=>2])
+    delete!(d, A)
+    @test issame(d, ADict([B=>2]))
+    @test issame(merge(ADict(), ADict(A=>1), Dict(B=>2)), ADict(A=>1, B=>2))
 end
