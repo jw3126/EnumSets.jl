@@ -116,10 +116,9 @@ end
     c=typemin(Int128)
     d=typemax(Int128)
 end
-@enumset NegativeSet <: EnumSet{Negative}
 
 @testset "negative enum" begin
-
+    NegativeSet = enumsettype(Negative)
     @test NegativeSet((a,b, d)) != NegativeSet((a,))
     @test NegativeSet((a,b, d)) ⊆ NegativeSet((a,b, c, d))
     @test NegativeSet((a,b, d)) ⊊ NegativeSet((a,b, c, d))

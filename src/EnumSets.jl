@@ -84,34 +84,34 @@ function suggest_carriertype(E)
     end
 end
 
-struct EnumSet{E, C, P <: PackingTrait} <: AbstractSet{E} 
+struct EnumSetT{E, C, P <: PackingTrait} <: AbstractSet{E} 
     _data::C
-    function EnumSet{E,C,P}(data::C) where {E,C,P}
+    function EnumSetT{E,C,P}(data::C) where {E,C,P}
         new{E,C,P}(data)
     end
 end
 
-function Base.show(io::IO, s::EnumSet)
+function Base.show(io::IO, s::EnumSetT)
     print(io, typeof(s), '(', Tuple(s), ')')
 end
 
-function EnumSet{E,C,P}()::EnumSet{E,C,P} where {E,C,P}
-    EnumSet{E,C,P}(zero(C))
+function EnumSetT{E,C,P}()::EnumSetT{E,C,P} where {E,C,P}
+    EnumSetT{E,C,P}(zero(C))
 end
 
-function EnumSet{E,C,P}(s::EnumSet{E,C,P})::EnumSet{E,C,P} where {E,C,P}
+function EnumSetT{E,C,P}(s::EnumSetT{E,C,P})::EnumSetT{E,C,P} where {E,C,P}
     s
 end
 
-function EnumSet{E,C,P}(itr)::EnumSet{E,C,P} where {E,C,P}
-    ret = EnumSet{E,C,P}()
+function EnumSetT{E,C,P}(itr)::EnumSetT{E,C,P} where {E,C,P}
+    ret = EnumSetT{E,C,P}()
     for e in itr
         ret = push(ret, convert(E, e))
     end
     ret
 end
 
-function PackingTrait(s::EnumSet{E,C,P})::PackingTrait where {E,C,P}
+function PackingTrait(s::EnumSetT{E,C,P})::PackingTrait where {E,C,P}
     P()
 end
 
@@ -119,44 +119,44 @@ function _get_data(s)
     s._data
 end
 
-function setbit(s::EnumSet, i::Int, val::Bool)::typeof(s)
+function setbit(s::EnumSetT, i::Int, val::Bool)::typeof(s)
     typeof(s)(setbit(_get_data(s), i, val))
 end
-function getbit(s::EnumSet, i::Int)::Bool
+function getbit(s::EnumSetT, i::Int)::Bool
     getbit(_get_data(s), i)
 end
 
-function Base.in(e::E, s::EnumSet{E})::Bool where {E}
+function Base.in(e::E, s::EnumSetT{E})::Bool where {E}
     i = bitindex_from_instance(E, PackingTrait(s), e)
     getbit(s, i)
 end
-function push(s::EnumSet{E}, e::E)::typeof(s) where {E}
+function push(s::EnumSetT{E}, e::E)::typeof(s) where {E}
     i = bitindex_from_instance(E, PackingTrait(s), e)
     setbit(s, i, true)
 end
-function push(s::EnumSet{E}, es...)::typeof(s) where {E}
+function push(s::EnumSetT{E}, es...)::typeof(s) where {E}
     union(s, es)
 end
-function pop(s::EnumSet{E}, e::E)::typeof(s) where {E}
+function pop(s::EnumSetT{E}, e::E)::typeof(s) where {E}
     i = bitindex_from_instance(E, PackingTrait(s), e)
     @boundscheck if !getbit(s, i)
         throw(KeyError(e))
     end
     setbit(s, i, false)
 end
-function capacity(s::EnumSet)::Int
+function capacity(s::EnumSetT)::Int
     8*sizeof(s)
 end
-function Base.length(s::EnumSet)::Int
+function Base.length(s::EnumSetT)::Int
     count_ones(s._data)
 end
 
-function Base.hash(s::EnumSet{E}, h::UInt)::UInt where {E}
+function Base.hash(s::EnumSetT{E}, h::UInt)::UInt where {E}
     h = hash(E, h)
     hash(_get_data(s), h)
 end
 
-function Base.filter(f, s::EnumSet)::typeof(s)
+function Base.filter(f, s::EnumSetT)::typeof(s)
     # could use boolean here
     ret = typeof(s)()
     for e in s
@@ -177,7 +177,7 @@ function blsr(x::T)::T where {T<:Integer}
     convert(T,Base._blsr(x))
 end
 
-function Base.iterate(s::EnumSet{E,I}, state=_get_data(s))::Union{Nothing, Tuple{E, I}} where {E,I}
+function Base.iterate(s::EnumSetT{E,I}, state=_get_data(s))::Union{Nothing, Tuple{E, I}} where {E,I}
     next_state = blsr(state)
     if next_state === state
         return nothing
@@ -187,21 +187,21 @@ function Base.iterate(s::EnumSet{E,I}, state=_get_data(s))::Union{Nothing, Tuple
     end
 end
 
-function boolean(f,s::S, ss...)::S where {S <: EnumSet}
+function boolean(f,s::S, ss...)::S where {S <: EnumSetT}
     d = _get_data(s)
     ds = map(_get_data ∘ S, ss)
     S(f(d, ds...))
 end
 
-function Base.union(s1::S, ss...)::S where {S <: EnumSet}
+function Base.union(s1::S, ss...)::S where {S <: EnumSetT}
     boolean((|),s1,ss...)
 end
 
-function Base.intersect(s1::S, ss...)::S where {S <: EnumSet}
+function Base.intersect(s1::S, ss...)::S where {S <: EnumSetT}
     boolean((&),s1,ss...)
 end
 
-function Base.symdiff(s1::S, ss...)::S where {S <: EnumSet}
+function Base.symdiff(s1::S, ss...)::S where {S <: EnumSetT}
     boolean(xor,s1,ss...)
 end
 
@@ -209,49 +209,13 @@ function bitdiff(x, xs...)
     (&)(x, map(~, xs)...)
 end
 
-function Base.setdiff(s1::S, ss...)::S where {S <: EnumSet}
+function Base.setdiff(s1::S, ss...)::S where {S <: EnumSetT}
     boolean(bitdiff,s1,ss...)
 end
 
-function Base.issubset(s1::S, s2::S)::Bool where {S <: EnumSet}
+function Base.issubset(s1::S, s2::S)::Bool where {S <: EnumSetT}
     s1 ∩ s2 === s1
 end
-
-function make_error_msg(ex)
-    """
-    $ex is not an expression of the form
-    MySet <: EnumSet{MyEnum}
-    MySet <: EnumSet{MyEnum, UInt64}
-    """
-end
-
-"""
-This macro is deprecate. Use `const MySet = enumsettype(MyEnum)` instead.
-"""
-macro enumset(ex)
-    if !Meta.isexpr(ex, :<:)
-        error(make_error_msg(ex))
-    end
-    ESet, ex_EnumSet = ex.args
-    if !Meta.isexpr(ex_EnumSet, :curly)
-        error(make_error_msg(ex_EnumSet))
-    end
-    if length(ex_EnumSet.args) == 2
-        symbol_EnumSet, E = ex_EnumSet.args
-        C = nothing
-    elseif length(ex_EnumSet.args) == 3
-        symbol_EnumSet, E, C = ex_EnumSet.args
-    else
-        error(make_error_msg(ex_EnumSet))
-    end
-    E = __module__.eval(E)
-    C = __module__.eval(C)
-    if isnothing(C)
-        C = suggest_carriertype(E)
-    end
-    esc(:(const $ESet = $enumsettype($E; carrier=$C)))
-end
-
 
 function enum_fits_into_offset_packing(E, nbits)
     lo, hi = extrema(Integer, instances(E))
@@ -262,7 +226,7 @@ end
 """
     enumsettype(::Type{E})::Type
 
-Return a subtype of `EnumSet` suitable for storing instances of an enum `E`.
+Return a subtype of `EnumSetT` suitable for storing instances of an enum `E`.
 Typical usage looks like this:
 ```julia
 @enum Alphabet A B C
@@ -293,7 +257,7 @@ function enumsettype(::Type{E}; carrier::Union{Nothing, Type}=nothing)::Type whe
     else
         InstanceBasedPacking
     end
-    EnumSet{E, C, P}
+    EnumSetT{E, C, P}
 end
 
 
