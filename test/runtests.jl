@@ -2,7 +2,7 @@ using EnumSets
 import EnumSets as ES
 using Test
 
-function fuzz(ESet)
+function fuzz_set(ESet)
     E = eltype(ESet)
     es = instances(E)
     n = length(es)
@@ -64,19 +64,19 @@ end
     @test sizeof(enumsettype(OneToEight)) == 1
     @test enumsettype(ZeroToSeven) === ES.EnumSet8{ZeroToSeven}
     @test !(enumsettype(OneToEight) <: ES.EnumSet8)
-    fuzz(enumsettype(ZeroToSeven))
-    fuzz(enumsettype(OneToEight))
+    fuzz_set(enumsettype(ZeroToSeven))
+    fuzz_set(enumsettype(OneToEight))
 
     @test sizeof(ES.EnumSet8{ZeroToSeven}) == 1
     @test sizeof(ES.EnumSet16{ZeroToSeven}) == 2
     @test sizeof(ES.EnumSet32{ZeroToSeven}) == 4
     @test sizeof(ES.EnumSet64{ZeroToSeven}) == 8
     @test sizeof(ES.EnumSet128{ZeroToSeven}) == 16
-    fuzz(ES.EnumSet8{ZeroToSeven}) # more space no problem
-    fuzz(ES.EnumSet16{ZeroToSeven}) # more space no problem
-    fuzz(ES.EnumSet32{ZeroToSeven}) # more space no problem
-    fuzz(ES.EnumSet64{ZeroToSeven}) # more space no problem
-    fuzz(ES.EnumSet128{ZeroToSeven}) # more space no problem
+    fuzz_set(ES.EnumSet8{ZeroToSeven}) # more space no problem
+    fuzz_set(ES.EnumSet16{ZeroToSeven}) # more space no problem
+    fuzz_set(ES.EnumSet32{ZeroToSeven}) # more space no problem
+    fuzz_set(ES.EnumSet64{ZeroToSeven}) # more space no problem
+    fuzz_set(ES.EnumSet128{ZeroToSeven}) # more space no problem
 end
 
 @testset "simple enum" begin
@@ -132,7 +132,7 @@ end
     next = iterate(s, state)
     @test isnothing(next)
 
-    fuzz(ASet)
+    fuzz_set(ASet)
 end
 
 @testset "hash eq" begin
@@ -169,7 +169,7 @@ end
     @test !(NegativeSet((a,b, d)) ⊊ NegativeSet((a,b, d)))
     @test NegativeSet((a,b)) ⊈ NegativeSet((a, c, d))
 
-    fuzz(NegativeSet)
+    fuzz_set(NegativeSet)
 end
 
 @enum ProgrammerExcuse begin
@@ -256,7 +256,7 @@ const ProgrammerExcuseSet = enumsettype(ProgrammerExcuse)
         @test length(s) == i
         @test collect(s) == collect(instances(ProgrammerExcuse))[1:i]
     end
-    fuzz(ProgrammerExcuseSet)
+    fuzz_set(ProgrammerExcuseSet)
     @test_throws "Enum ProgrammerExcuse does not fit into carrier type UInt64." enumsettype(ProgrammerExcuse; carrier=UInt64)
 end
 
@@ -304,11 +304,11 @@ end
     @test EnumSets.PackingTrait(SetX8()) == EnumSets.OffsetBasedPacking{0}()
     @test EnumSets.PackingTrait(SetX16()) == EnumSets.OffsetBasedPacking{0}()
 
-    fuzz(SetX1)
-    fuzz(SetX2)
-    fuzz(SetX4)
-    fuzz(SetX8)
-    fuzz(SetX16)
+    fuzz_set(SetX1)
+    fuzz_set(SetX2)
+    fuzz_set(SetX4)
+    fuzz_set(SetX8)
+    fuzz_set(SetX16)
 end
 
 @testset "redefine" begin
