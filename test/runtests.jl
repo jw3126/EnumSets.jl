@@ -38,7 +38,7 @@ function fuzz(ESet)
 
         if !isempty(s1)
             e = rand(s1)
-            @test ES.pop(s1,e) === ESet(filter(!=(e), s1))
+            @test EnumSets.pop(s1,e) === ESet(filter(!=(e), s1))
         end
     end
 end
@@ -76,7 +76,7 @@ end
 
     @test union(ASet([A]), [B], (B,)) === ASet((A, B))
 
-    @testset setdiff(ASet((A,B)), ASet((B,C))) === ASet((A,))
+    @test setdiff(ASet((A,B)), ASet((B,C))) === ASet((A,))
 
     @test intersect(ASet([A,B]), ASet([C,B])) === ASet([B])
 

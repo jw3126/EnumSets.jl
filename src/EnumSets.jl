@@ -1,6 +1,6 @@
 module EnumSets
 export @enumset
-export push, enumsettype
+export push, pop, enumsettype
 
 function nbits(::Type{T}) where {T}
     8 * sizeof(T)
