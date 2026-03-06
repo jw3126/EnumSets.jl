@@ -218,6 +218,37 @@ const ProgrammerExcuseSet = enumsettype(ProgrammerExcuse)
 end
 
 
+@testset "getbit setbit" begin
+    for T in [UInt8, UInt16, UInt32, UInt64, UInt128]
+        x = zero(T)
+        @test !EnumSets.getbit(x, 0)
+        @test !EnumSets.getbit(x, 1)
+        x1 = EnumSets.setbit(x, 0, true)
+        @test EnumSets.getbit(x1, 0)
+        @test !EnumSets.getbit(x1, 1)
+        x2 = EnumSets.setbit(x1, 1, true)
+        @test EnumSets.getbit(x2, 0)
+        @test EnumSets.getbit(x2, 1)
+        x3 = EnumSets.setbit(x2, 0, false)
+        @test !EnumSets.getbit(x3, 0)
+        @test EnumSets.getbit(x3, 1)
+        # setting a bit to its current value is a no-op
+        @test EnumSets.setbit(x1, 0, true) === x1
+        @test EnumSets.setbit(x, 0, false) === x
+    end
+end
+
+@testset "pop" begin
+    @enum Fruit Apple Banana Cherry
+    FruitSet = enumsettype(Fruit)
+    s = FruitSet((Apple, Banana, Cherry))
+    @test EnumSets.pop(s, Apple) === FruitSet((Banana, Cherry))
+    @test EnumSets.pop(s, Banana) === FruitSet((Apple, Cherry))
+    @test EnumSets.pop(s, Cherry) === FruitSet((Apple, Banana))
+    @test EnumSets.pop(FruitSet((Apple,)), Apple) === FruitSet()
+    @test_throws KeyError EnumSets.pop(FruitSet((Banana,)), Apple)
+end
+
 @testset "blsr" begin
     for T in [UInt8, UInt16, UInt32, UInt64, UInt128]
         @test iszero(EnumSets.blsr(zero(T)))

@@ -15,8 +15,8 @@ end
 function setbit(xT::Integer, i, val)
     T = typeof(xT)
     iT = convert(T, i)
-    valT = convert(T, val)
-    xT | (valT << iT)
+    mask = one(T) << iT
+    (xT & ~mask) | (-convert(T, val) & mask)
 end
 
 abstract type PackingTrait end
