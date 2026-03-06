@@ -35,6 +35,11 @@ function fuzz(ESet)
         @test (e in s1) === (e in Set(s1))
 
         @test (s1 ∩ s2) === filter(in(s1), s2)
+
+        if !isempty(s1)
+            e = rand(s1)
+            @test ES.pop(s1,e) === ESet(filter(!=(e), s1))
+        end
     end
 end
 
